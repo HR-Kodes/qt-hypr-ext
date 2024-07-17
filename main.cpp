@@ -23,6 +23,32 @@
 #include <QVBoxLayout>
 #include <QTimer>
 
+#include <QDBusConnection>
+#include <QDBusInterface>
+#include <QDBusReply>
+#include <QVariantMap>
+
+#include "main.moc" 
+
+
+
+// Function to read battery level from Linux sysfs
+int readBatteryLevel() {
+    QFile file("/sys/class/power_supply/BAT0/capacity"); // Adjust BAT0 based on your system
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+        return -1;
+
+    QTextStream in(&file);
+    QString line = in.readLine();
+    file.close();
+
+    bool ok;
+    int batteryLevel = line.toInt(&ok);
+    if (!ok)
+        return -1;
+
+    return batteryLevel;
+}
 
 
 int main(int argc, char *argv[])
@@ -47,27 +73,33 @@ int main(int argc, char *argv[])
     w.setStyleSheet(styleSheet);
 
     QHBoxLayout *mainLayout = new QHBoxLayout(&w);
-    // necessary because of hiding
     mainLayout->setContentsMargins(6, 2, 6, 2);
 
 
     // pushButton to check if the panel gets mouse events
     QPushButton *button = new QPushButton("Applications", &w);
-    button->setFixedSize(125,24);
+    button->setFixedSize(140,24);
     button->setToolTip("it doesn't even show up");
+    button->setObjectName("application-btn");
     button->setStyleSheet(styleSheet);
+    button->setIcon(QIcon("./nixos.png"));
+    button->setIconSize(QSize(18, 17));
     mainLayout->addWidget(button);
     QObject::connect(button, &QPushButton::clicked, [&]() {
         qDebug() << "Application Button clicked!";
     });
 
-    QProgressBar *progressBar = new QProgressBar();
-    progressBar->setFixedSize(100, 24);
-    progressBar->setMinimum(0);
-    progressBar->setMaximum(100);
-    progressBar->setValue(70);
-    progressBar->setStyleSheet(styleSheet);
-    mainLayout->addWidget(progressBar);
+
+
+    QProgressBar *batteryIndicator = new QProgressBar();
+    batteryIndicator->setFixedSize(100, 24);
+    batteryIndicator->setMinimum(0);
+    batteryIndicator->setMaximum(100);
+    batteryIndicator->setValue(0);
+    // batteryIndicator->setValue(readBatteryLevel());
+    batteryIndicator->setObjectName("battery-indicator");
+    batteryIndicator->setStyleSheet(styleSheet);
+    mainLayout->addWidget(batteryIndicator);
 
     w.setLayout(mainLayout);
     w.setStyleSheet("QWidget { background-color: \"#171717\"; }");
@@ -86,9 +118,17 @@ int main(int argc, char *argv[])
         lsh->setAnchors(LayerShellQt::Window::AnchorBottom);
         lsh->setKeyboardInteractivity(LayerShellQt::Window::KeyboardInteractivityNone);
     }
+    QTimer batteryTimer;
+    batteryTimer.setInterval(1000); // Update interval: 1000 ms = 1 second
+    QObject::connect(&batteryTimer, &QTimer::timeout, [&]() {
+        int batteryLevel = readBatteryLevel();
+        batteryIndicator->setValue(batteryLevel);
+    });
+    batteryTimer.start();
+
 
     w.show();
-
+    
     // QTimer::singleShot(5000, &a, &QGuiApplication::quit);
     return a.exec();
 }

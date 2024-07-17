@@ -1,21 +1,19 @@
 {
   lib,
   stdenv,
-  cmake,
-  qt5,
-  layer-shell-qt,
-  qtstyleplugins,
-  wrapQtAppsHook,
+  pkgs,
 }:
 stdenv.mkDerivation rec {
   pname = "";
   version = "";
 
   src = ./.;
-  nativeBuildInputs = [cmake wrapQtAppsHook];
-  buildInputs = [
-    qt5.qtbase
-    layer-shell-qt
-    qtstyleplugins
+  nativeBuildInputs = with pkgs; [cmake kdePackages.wrapQtAppsHook];
+  buildInputs = with pkgs; [
+    qt6.qtbase
+    kdePackages.layer-shell-qt
+    kdePackages.qtwayland
+    kdePackages.qttools
+    # kdePackages.qtstyleplugins
   ];
 }
