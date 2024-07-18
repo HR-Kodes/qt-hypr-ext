@@ -15,6 +15,8 @@ find_package(LayerShellQt REQUIRED)
 
 set(PROJECT_SOURCES
         main.cpp
+        battery_level_widget.cpp
+        battery_level_widget.h
         widget.cpp
         widget.h
         widget.ui
