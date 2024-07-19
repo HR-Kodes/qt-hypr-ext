@@ -13,8 +13,10 @@
 
 #include <QTime>
 #include <QDateTime>
-#include <QTimer>  // Include QTimer header
-
+#include <QTimer>
+#include <QCalendarWidget>
+#include <QDialog>
+#include <QVBoxLayout>
 
 void updateButtonText(QPushButton *button) {
     // Get current date and time
@@ -110,7 +112,7 @@ int main(int argc, char *argv[])
     mainLayout->addLayout(centerLayout);
     mainLayout->addLayout(rightLayout);
 
-    
+
     w.setLayout(mainLayout);
     w.setStyleSheet("QWidget { background-color: \"#171717\"; }");
     w.resize(barSize);
@@ -129,6 +131,26 @@ int main(int argc, char *argv[])
     }
 
     BatteryLevelWidget widget(batteryIndicator);
+
+
+    
+    QDialog *calendarDialog = new QDialog(&w, Qt::Tool);
+    QVBoxLayout *dialogLayout = new QVBoxLayout(calendarDialog);
+    QCalendarWidget *calendarWidget = new QCalendarWidget();
+    calendarWidget->setFirstDayOfWeek(Qt::Wednesday);
+    calendarWidget->setVerticalHeaderFormat(QCalendarWidget::ISOWeekNumbers);
+    dialogLayout->addWidget(calendarWidget);
+    calendarDialog->setLayout(dialogLayout);
+    calendarDialog->setWindowFlags(calendarDialog->windowFlags() | Qt::FramelessWindowHint);
+    calendarDialog->setStyleSheet("background-color: white;");
+
+    QObject::connect(calendarBtn, &QPushButton::clicked, [calendarDialog, &w]() {
+        QPoint globalPos = w.mapToGlobal(QPoint(0, 0));
+        int yOffset = w.height();
+        calendarDialog->move(globalPos.x(), globalPos.y() - yOffset);
+        calendarDialog->setVisible(!calendarDialog->isVisible());
+    });
+
 
 
     w.show();
