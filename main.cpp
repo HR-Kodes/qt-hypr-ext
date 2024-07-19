@@ -11,6 +11,27 @@
 #include <QHBoxLayout>
 #include <QWindow>
 
+#include <QTime>
+#include <QDateTime>
+#include <QTimer>  // Include QTimer header
+
+
+void updateButtonText(QPushButton *button) {
+    // Get current date and time
+    QDateTime currentDateTime = QDateTime::currentDateTime();
+    // QString dateTimeString = currentDateTime.toString("dddd, MMMM d yyyy, hh:mm:ss");
+    QString dateTimeString = currentDateTime.toString("hh:mm - dddd d.");
+
+    // Set button text
+    button->setText(dateTimeString);
+
+    // Schedule the next update after 1 second
+    QTimer::singleShot(1000, [button]() { updateButtonText(button); });
+}
+
+
+
+
 int main(int argc, char *argv[])
 {
     LayerShellQt::Shell::useLayerShell();
@@ -33,19 +54,45 @@ int main(int argc, char *argv[])
 
     QHBoxLayout *mainLayout = new QHBoxLayout(&w);
     mainLayout->setContentsMargins(6, 2, 6, 2);
+    // Create the left section layout
+    QHBoxLayout *leftLayout = new QHBoxLayout;
+    leftLayout->setSpacing(6);
+
 
     // pushButton to check if the panel gets mouse events
-    QPushButton *button = new QPushButton("Applications", &w);
-    button->setFixedSize(140,24);
-    button->setToolTip("it doesn't even show up");
-    button->setObjectName("application-btn");
-    button->setStyleSheet(styleSheet);
-    button->setIcon(QIcon("./nixos.png"));
-    button->setIconSize(QSize(18, 17));
-    mainLayout->addWidget(button);
-    QObject::connect(button, &QPushButton::clicked, [&]() {
+    QPushButton *applicationBtn = new QPushButton("Applications", &w);
+    applicationBtn->setFixedSize(140,24);
+    applicationBtn->setToolTip("it doesn't even show up");
+    applicationBtn->setObjectName("application-btn");
+    applicationBtn->setStyleSheet(styleSheet);
+    applicationBtn->setIcon(QIcon("./nixos.png"));
+    applicationBtn->setIconSize(QSize(18, 17));
+    // mainLayout->addWidget(applicationBtn);
+    leftLayout->addWidget(applicationBtn);
+    QObject::connect(applicationBtn, &QPushButton::clicked, [&]() {
         qDebug() << "Application Button clicked!";
     });
+
+
+
+    // Create the center section layout
+    QHBoxLayout *centerLayout = new QHBoxLayout;
+    centerLayout->addStretch(); // Spacer before the center widget
+
+
+    QPushButton *calendarBtn = new QPushButton("Loading...");
+    calendarBtn->setMinimumSize(140, 24);
+    calendarBtn->setObjectName("calendar-btn");
+    calendarBtn->setStyleSheet(styleSheet);
+    centerLayout->addWidget(calendarBtn);
+    updateButtonText(calendarBtn);
+    centerLayout->addStretch();
+    // centerLayout->addSpacing(100);
+
+
+    // Create the right section layout
+    QHBoxLayout *rightLayout = new QHBoxLayout;
+
 
     QProgressBar *batteryIndicator = new QProgressBar();
     batteryIndicator->setFixedSize(100, 24);
@@ -54,9 +101,16 @@ int main(int argc, char *argv[])
     batteryIndicator->setValue(0);
     batteryIndicator->setObjectName("battery-indicator");
     batteryIndicator->setStyleSheet(styleSheet);
+    rightLayout->addWidget(batteryIndicator);
 
-    mainLayout->addWidget(batteryIndicator);
 
+
+    // Add sections to the main layout
+    mainLayout->addLayout(leftLayout);
+    mainLayout->addLayout(centerLayout);
+    mainLayout->addLayout(rightLayout);
+
+    
     w.setLayout(mainLayout);
     w.setStyleSheet("QWidget { background-color: \"#171717\"; }");
     w.resize(barSize);
@@ -76,7 +130,9 @@ int main(int argc, char *argv[])
 
     BatteryLevelWidget widget(batteryIndicator);
 
+
     w.show();
+
 
     return a.exec();
 }

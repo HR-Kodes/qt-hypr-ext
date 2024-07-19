@@ -16,6 +16,20 @@
     }
 
 
+#calendar-btn {
+        color: #EEEEEE;
+        font-size: 16px;
+        font-weight: 700;
+        border-radius: 12px;
+        border: none;
+}
+#calendar-btn:hover {
+        color: #EEEEEE;
+        background-color: #373737;
+    }
+
+
+
 #battery-indicator {
         background-color: #242424;
         border: 1px solid #2C2C2C;
